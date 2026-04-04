@@ -1,95 +1,54 @@
 package com.platform.controller;
 
 import com.platform.dto.request.UserRegistrationDTO;
-import com.platform.dto.response.UserResponseDTO;
+import com.platform.model.user.Customer;
+import com.platform.model.user.Driver;
 import com.platform.model.user.User;
-import com.platform.repository.UserRepository;
+import com.platform.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.Map;
 
-/**
- * Controller for handling user-related operations
- */
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
-    
-    private final UserRepository userRepository;
-    
+
+    private final UserService userService;
+
     @Autowired
-    public UserController(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public UserController(UserService userService) {
+        this.userService = userService;
     }
-    
-    @PostMapping("/register")
-    public ResponseEntity<UserResponseDTO> registerUser(@RequestBody UserRegistrationDTO userRegistration) {
-        // TODO: Implement user registration logic
+
+    @PostMapping("/customer")
+    public ResponseEntity<Customer> registerCustomer(@RequestBody UserRegistrationDTO dto) {
+        Customer customer = userService.registerCustomer(dto);
+        return new ResponseEntity<>(customer, HttpStatus.CREATED);
+    }
+
+    @PostMapping("/driver")
+    public ResponseEntity<Driver> registerDriver(@RequestBody UserRegistrationDTO dto) {
+        Driver driver = userService.registerDriver(dto);
+        return new ResponseEntity<>(driver, HttpStatus.CREATED);
+    }
+
+    @PostMapping("/login/otp")
+    public ResponseEntity<Void> sendLoginOTP(@RequestParam String phone) {
+        userService.sendLoginOTP(phone);
         return ResponseEntity.ok().build();
     }
-    
+
+    @PostMapping("/login")
+    public ResponseEntity<Map<String, String>> login(@RequestParam String phone, @RequestParam String otp) {
+        String token = userService.login(phone, otp);
+        return ResponseEntity.ok(Map.of("token", token));
+    }
+
     @GetMapping("/{id}")
-    public ResponseEntity<UserResponseDTO> getUser(@PathVariable Long id) {
-        // TODO: Implement user retrieval logic
-        return ResponseEntity.ok().build();
-    }
-    
-    @GetMapping("/profile/{email}")
-    public ResponseEntity<UserResponseDTO> getUserProfile(@PathVariable String email) {
-        // TODO: Implement user profile retrieval logic
-        return ResponseEntity.ok().build();
-    }
-    
-    @PutMapping("/{id}")
-    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable Long id, @RequestBody UserRegistrationDTO userUpdate) {
-        // TODO: Implement user update logic
-        return ResponseEntity.ok().build();
-    }
-    
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        // TODO: Implement user deletion logic
-        return ResponseEntity.ok().build();
-    }
-    
-    @GetMapping("/all")
-    public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
-        // TODO: Implement get all users logic
-        return ResponseEntity.ok().build();
-    }
-    
-    @PostMapping("/{id}/verify")
-    public ResponseEntity<UserResponseDTO> verifyUser(@PathVariable Long id, @RequestParam String verificationCode) {
-        // TODO: Implement user verification logic
-        return ResponseEntity.ok().build();
-    }
-    
-    @PostMapping("/{id}/deactivate")
-    public ResponseEntity<Void> deactivateUser(@PathVariable Long id) {
-        // TODO: Implement user deactivation logic
-        return ResponseEntity.ok().build();
-    }
-    
-    @PostMapping("/{id}/activate")
-    public ResponseEntity<Void> activateUser(@PathVariable Long id) {
-        // TODO: Implement user activation logic
-        return ResponseEntity.ok().build();
-    }
-    
-    private UserRegistrationDTO validateUserRegistration(UserRegistrationDTO userRegistration) {
-        // TODO: Implement user registration validation logic
-        return userRegistration;
-    }
-    
-    private boolean isEmailUnique(String email) {
-        // TODO: Implement email uniqueness check logic
-        return true;
-    }
-    
-    private boolean isPhoneUnique(String phone) {
-        // TODO: Implement phone uniqueness check logic
-        return true;
+    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.getUserById(id));
     }
 }

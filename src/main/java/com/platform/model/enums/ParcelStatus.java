@@ -1,12 +1,11 @@
 package com.platform.model.enums;
 
-/**
- * Enum for parcel status
- */
 public enum ParcelStatus {
-    PENDING_PICKUP,
-    IN_TRANSIT,
+    CREATED,
+    PICKED_UP,
     OUT_FOR_DELIVERY,
     DELIVERED,
-    RETURNED
+    RETURNED,
+    FAILED_TO_DELIVER,
+    CANCELLED
 }

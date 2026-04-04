@@ -1,49 +1,86 @@
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/repository/UserRepository.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/service/OTPManager.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/strategy/PaymentStrategy.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/model/enums/ParcelStatus.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/model/user/Administrator.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/strategy/impl/WalletPayment.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/model/enums/MessageType.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/Application.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/model/ride/BookingRequest.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/controller/BookingController.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/model/support/Rating.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/service/EmergencyService.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/model/core/Matchable.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/service/MatchingEngine.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/service/PricingEngine.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/strategy/MatchStrategy.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/service/NotificationService.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/model/enums/VerificationStatus.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/controller/UserController.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/model/core/Payable.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/model/enums/VehicleCategory.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/strategy/impl/UPIPayment.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/strategy/impl/CashPayment.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/model/user/User.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/model/ride/ServiceZone.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/model/enums/DocType.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/model/enums/TicketStatus.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/model/support/Message.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/model/ride/Parcel.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/model/user/Customer.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/model/payment/Invoice.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/repository/InvoiceRepository.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/controller/AdminController.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/model/support/Document.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/model/enums/EarningSource.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/model/core/Rateable.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/model/payment/DriverPayoutModel.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/repository/TripRepository.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/controller/PaymentController.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/model/user/Driver.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/model/ride/Trip.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/controller/TripController.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/model/enums/AccessLevel.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/model/enums/DriverStatus.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/model/enums/ServiceType.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/service/CustomerCareService.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/model/enums/Gender.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/model/enums/TripStatus.java
-/home/hritik-budhwar/Desktop/CAB_DEL/src/main/java/com/platform/model/ride/Vehicle.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/dto/response/AdminResponseDTO.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/strategy/match/impl/PriorityMatchStrategy.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/service/PricingEngine.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/service/TripService.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/model/enums/ServiceType.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/strategy/match/impl/StandardMatchStrategy.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/model/core/Matchable.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/model/enums/MessageType.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/service/NotificationService.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/dto/response/PaymentResponseDTO.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/controller/PaymentController.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/controller/BookingController.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/dto/request/UserRegistrationDTO.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/dto/request/TripUpdateDTO.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/model/user/User.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/model/user/Administrator.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/repository/RatingRepository.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/dto/response/UserResponseDTO.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/repository/MessageRepository.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/strategy/match/MatchStrategy.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/model/enums/VerificationStatus.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/dto/response/BookingResponseDTO.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/model/enums/DocType.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/dto/response/TripResponseDTO.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/repository/CustomerRepository.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/service/impl/EmergencyServiceImpl.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/Application.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/repository/DocumentRepository.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/model/user/Driver.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/model/ride/BookingRequest.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/service/OTPManager.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/model/enums/TicketStatus.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/repository/InvoiceRepository.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/service/impl/CustomerCareServiceImpl.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/exception/GlobalExceptionHandler.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/repository/TripRepository.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/service/BookingService.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/service/PaymentService.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/service/impl/TripServiceImpl.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/model/support/Document.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/model/payment/DriverPayoutModel.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/model/enums/EarningSource.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/service/UserService.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/controller/AdminController.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/model/enums/AccessLevel.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/model/enums/TripStatus.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/model/enums/VehicleCategory.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/service/impl/BookingServiceImpl.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/model/core/Payable.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/model/ride/Trip.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/service/EmergencyService.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/strategy/payment/impl/CashPayment.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/repository/ParcelRepository.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/model/ride/Parcel.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/service/impl/UserServiceImpl.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/service/impl/PricingEngineImpl.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/controller/UserController.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/controller/TripController.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/repository/BookingRequestRepository.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/dto/request/AdminActionDTO.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/strategy/payment/impl/UPIPayment.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/service/impl/MatchingEngineImpl.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/repository/UserRepository.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/model/enums/ParcelStatus.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/model/support/Rating.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/repository/DriverRepository.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/strategy/payment/impl/WalletPayment.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/dto/request/PaymentRequestDTO.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/repository/VehicleRepository.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/model/core/Rateable.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/model/ride/ServiceZone.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/dto/response/SystemStatsDTO.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/service/MatchingEngine.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/model/support/Message.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/model/enums/DriverStatus.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/model/user/Customer.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/strategy/payment/PaymentStrategy.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/service/AdminService.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/service/impl/NotificationServiceImpl.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/model/ride/Vehicle.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/service/impl/AdminServiceImpl.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/service/impl/PaymentServiceImpl.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/model/payment/Invoice.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/dto/request/BookingRequestDTO.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/service/CustomerCareService.java
+/home/gurup/Documents/6th Sem/oad_PESU/mini project/Scalable-ride-matching-system/src/main/java/com/platform/model/enums/Gender.java

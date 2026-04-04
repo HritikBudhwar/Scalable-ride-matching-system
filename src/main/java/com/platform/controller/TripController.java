@@ -2,113 +2,145 @@ package com.platform.controller;
 
 import com.platform.dto.request.TripUpdateDTO;
 import com.platform.dto.response.TripResponseDTO;
-import com.platform.model.enums.TripStatus;
-import com.platform.repository.TripRepository;
-import com.platform.service.MatchingEngine;
-import com.platform.service.PricingEngine;
+import com.platform.model.ride.Trip;
+import com.platform.service.TripService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
- * Controller for handling trip-related operations
+ * Manages trip state transitions and real-time driver actions.
+ * MVC Pattern: Controller — delegates all state logic to TripService.
  */
 @RestController
 @RequestMapping("/api/trips")
 public class TripController {
-    
-    private final TripRepository tripRepository;
-    private final MatchingEngine matchingEngine;
-    private final PricingEngine pricingEngine;
-    
+
+    private final TripService tripService;
+
     @Autowired
-    public TripController(TripRepository tripRepository, MatchingEngine matchingEngine, PricingEngine pricingEngine) {
-        this.tripRepository = tripRepository;
-        this.matchingEngine = matchingEngine;
-        this.pricingEngine = pricingEngine;
+    public TripController(TripService tripService) {
+        this.tripService = tripService;
     }
-    
-    @PostMapping("/start")
-    public ResponseEntity<TripResponseDTO> startTrip(@RequestParam Long bookingId) {
-        // TODO: Implement trip start logic
-        return ResponseEntity.ok().build();
+
+    /**
+     * Driver accepts an assigned trip.
+     * POST /api/trips/{id}/accept?driverId=5
+     */
+    @PostMapping("/{id}/accept")
+    public ResponseEntity<TripResponseDTO> acceptTrip(
+            @PathVariable Long id,
+            @RequestParam Long driverId) {
+        Trip trip = tripService.acceptTrip(id, driverId);
+        return ResponseEntity.ok(toDTO(trip));
     }
-    
-    @PutMapping("/{id}/end")
-    public ResponseEntity<TripResponseDTO> endTrip(@PathVariable Long id, @RequestBody TripUpdateDTO tripUpdate) {
-        // TODO: Implement trip end logic
-        return ResponseEntity.ok().build();
+
+    /**
+     * Driver rejects a trip — triggers re-matching.
+     * POST /api/trips/{id}/reject?driverId=5
+     */
+    @PostMapping("/{id}/reject")
+    public ResponseEntity<Map<String, String>> rejectTrip(
+            @PathVariable Long id,
+            @RequestParam Long driverId) {
+        tripService.rejectTrip(id, driverId);
+        return ResponseEntity.ok(Map.of("message", "Trip rejected. Re-matching in progress."));
     }
-    
+
+    /**
+     * Update trip status (IN_PROGRESS, COMPLETED, CANCELLED).
+     * PUT /api/trips/{id}/status
+     * Body: { "newStatus": "IN_PROGRESS" }
+     */
+    @PutMapping("/{id}/status")
+    public ResponseEntity<TripResponseDTO> updateStatus(
+            @PathVariable Long id,
+            @RequestBody TripUpdateDTO dto) {
+        Trip trip = tripService.updateTripStatus(id, dto.getNewStatus());
+        return ResponseEntity.ok(toDTO(trip));
+    }
+
+    /**
+     * Complete a parcel delivery with OTP verification.
+     * POST /api/trips/{id}/complete-parcel
+     * Body: { "otp": "482910" }
+     */
+    @PostMapping("/{id}/complete-parcel")
+    public ResponseEntity<TripResponseDTO> completeParcel(
+            @PathVariable Long id,
+            @RequestBody TripUpdateDTO dto) {
+        Trip trip = tripService.completeParcelDelivery(id, dto.getOtp());
+        return ResponseEntity.ok(toDTO(trip));
+    }
+
+    /**
+     * Driver updates live GPS location during trip.
+     * PUT /api/trips/{id}/location
+     * Body: { "geoPoint": "12.9716,77.5946" }
+     */
+    @PutMapping("/{id}/location")
+    public ResponseEntity<Map<String, String>> updateLocation(
+            @PathVariable Long id,
+            @RequestBody TripUpdateDTO dto) {
+        tripService.updateDriverLocation(id, dto.getGeoPoint());
+        return ResponseEntity.ok(Map.of("message", "Location updated."));
+    }
+
+    /**
+     * GET /api/trips/{id}
+     */
     @GetMapping("/{id}")
     public ResponseEntity<TripResponseDTO> getTrip(@PathVariable Long id) {
-        // TODO: Implement trip retrieval logic
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(toDTO(tripService.getTripById(id)));
     }
-    
-    @GetMapping("/driver/{driverId}")
-    public ResponseEntity<List<TripResponseDTO>> getDriverTrips(@PathVariable Long driverId) {
-        // TODO: Implement driver trips retrieval logic
-        return ResponseEntity.ok().build();
+
+    /**
+     * GET /api/trips?customerId=1  OR  ?driverId=2
+     */
+    @GetMapping
+    public ResponseEntity<List<TripResponseDTO>> getTrips(
+            @RequestParam(required = false) Long customerId,
+            @RequestParam(required = false) Long driverId) {
+
+        List<Trip> trips;
+        if (customerId != null) {
+            trips = tripService.getCustomerTrips(customerId);
+        } else if (driverId != null) {
+            trips = tripService.getDriverTrips(driverId);
+        } else {
+            return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.ok(
+            trips.stream().map(this::toDTO).collect(Collectors.toList())
+        );
     }
-    
-    @GetMapping("/customer/{customerId}")
-    public ResponseEntity<List<TripResponseDTO>> getCustomerTrips(@PathVariable Long customerId) {
-        // TODO: Implement customer trips retrieval logic
-        return ResponseEntity.ok().build();
-    }
-    
-    @GetMapping("/status/{status}")
-    public ResponseEntity<List<TripResponseDTO>> getTripsByStatus(@PathVariable TripStatus status) {
-        // TODO: Implement trips by status retrieval logic
-        return ResponseEntity.ok().build();
-    }
-    
-    @PutMapping("/{id}/cancel")
-    public ResponseEntity<TripResponseDTO> cancelTrip(@PathVariable Long id) {
-        // TODO: Implement trip cancellation logic
-        return ResponseEntity.ok().build();
-    }
-    
-    @PostMapping("/{id}/emergency")
-    public ResponseEntity<Void> reportEmergency(@PathVariable Long id, @RequestParam String emergencyType) {
-        // TODO: Implement emergency reporting logic
-        return ResponseEntity.ok().build();
-    }
-    
-    @GetMapping("/active")
-    public ResponseEntity<List<TripResponseDTO>> getActiveTrips() {
-        // TODO: Implement active trips retrieval logic
-        return ResponseEntity.ok().build();
-    }
-    
-    @PostMapping("/{id}/location")
-    public ResponseEntity<Void> updateLocation(@PathVariable Long id, @RequestParam Double latitude, 
-                                          @RequestParam Double longitude) {
-        // TODO: Implement location update logic
-        return ResponseEntity.ok().build();
-    }
-    
-    @GetMapping("/{id}/fare")
-    public ResponseEntity<Double> calculateTripFare(@PathVariable Long id) {
-        // TODO: Implement fare calculation logic
-        return ResponseEntity.ok().build();
-    }
-    
-    private TripResponseDTO validateTripUpdate(TripUpdateDTO tripUpdate) {
-        // TODO: Implement trip update validation logic
-        return null;
-    }
-    
-    private boolean isTripOwner(Long tripId, Long userId) {
-        // TODO: Implement trip ownership verification logic
-        return true;
-    }
-    
-    private Double calculateDistance(String pickupLocation, String dropoffLocation) {
-        // TODO: Implement distance calculation logic
-        return 0.0;
+
+    // ---- Mapper ----
+    private TripResponseDTO toDTO(Trip t) {
+        TripResponseDTO dto = new TripResponseDTO();
+        dto.setId(t.getId());
+        dto.setSource(t.getSource());
+        dto.setDestination(t.getDestination());
+        dto.setStatus(t.getTripStatus());
+        dto.setDistanceTraveled(t.getDistanceTraveled());
+        dto.setStartTime(t.getStartTime());
+        dto.setEndTime(t.getEndTime());
+        if (t.getDriver() != null) {
+            dto.setDriverName(t.getDriver().getFirstName() + " " + t.getDriver().getLastName());
+        }
+        if (t.getVehicle() != null) {
+            // Updated to match our model's "RegistrationNo"
+            dto.setVehicleReg(t.getVehicle().getRegistrationNumber());
+            dto.setVehicleModel(t.getVehicle().getModel());
+        }
+        if (t.getInvoice() != null) {
+            dto.setInvoiceTotal(t.getInvoice().getTotalAmount());
+        }
+        return dto;
     }
 }

@@ -1,11 +1,8 @@
 package com.platform.model.enums;
 
-/**
- * Enum for driver status
- */
 public enum DriverStatus {
-    OFFLINE,
-    ONLINE,
-    IN_TRIP,
-    BREAK
+    PENDING_APPROVAL,
+    AVAILABLE,
+    OFF_DUTY,
+    ON_TRIP
 }

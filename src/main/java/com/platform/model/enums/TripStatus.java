@@ -1,12 +1,9 @@
 package com.platform.model.enums;
 
-/**
- * Enum for trip status
- */
 public enum TripStatus {
     REQUESTED,
-    ACCEPTED,
-    ARRIVED,
+    SEARCHING,
+    ASSIGNED,
     IN_PROGRESS,
     COMPLETED,
     CANCELLED

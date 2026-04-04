@@ -1,11 +1,13 @@
 package com.platform.model.enums;
 
 /**
- * Enum for different service types
+ * Defines the different types of services offered by the platform.
  */
 public enum ServiceType {
-    RIDE_HAILING,
-    PARCEL_DELIVERY,
-    INTERCITY,
-    RENTAL
+    BIKE, 
+    AUTO, 
+    HATCHBACK, 
+    SEDAN, 
+    SUV, 
+    LOGISTICS
 }

@@ -1,109 +1,102 @@
 package com.platform.controller;
 
-import com.platform.dto.request.PaymentRequestDTO;
-import com.platform.dto.response.PaymentResponseDTO;
-import com.platform.repository.InvoiceRepository;
-import com.platform.strategy.PaymentStrategy;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import com.platform.dto.request.PaymentRequestDTO;
+import com.platform.dto.response.PaymentResponseDTO;
+import com.platform.model.payment.Invoice;
+import com.platform.service.PaymentService;
 
 /**
- * Controller for handling payment-related operations
+ * Handles payment processing, refunds, tips, and driver payouts.
+ * MVC Pattern: Controller — delegates to PaymentService which uses Strategy pattern.
  */
 @RestController
 @RequestMapping("/api/payments")
 public class PaymentController {
-    
-    private final InvoiceRepository invoiceRepository;
-    private final PaymentStrategy paymentStrategy;
-    
+
+    private final PaymentService paymentService;
+
     @Autowired
-    public PaymentController(InvoiceRepository invoiceRepository, PaymentStrategy paymentStrategy) {
-        this.invoiceRepository = invoiceRepository;
-        this.paymentStrategy = paymentStrategy;
+    public PaymentController(PaymentService paymentService) {
+        this.paymentService = paymentService;
     }
-    
-    @PostMapping("/process")
-    public ResponseEntity<PaymentResponseDTO> processPayment(@RequestBody PaymentRequestDTO paymentRequest) {
-        // TODO: Implement payment processing logic
-        return ResponseEntity.ok().build();
+
+    /**
+     * Process payment for a completed trip.
+     * POST /api/payments
+     * Body: { "invoiceId": 1, "paymentMethod": "UPI" }
+     */
+    @PostMapping
+    public ResponseEntity<PaymentResponseDTO> processPayment(
+            @RequestBody PaymentRequestDTO dto) {
+        Invoice invoice = paymentService.processPayment(dto.getInvoiceId(), dto.getPaymentMethod());
+        return ResponseEntity.ok(toDTO(invoice, "Payment successful."));
     }
-    
-    @PostMapping("/refund/{invoiceId}")
-    public ResponseEntity<PaymentResponseDTO> refundPayment(@PathVariable Long invoiceId) {
-        // TODO: Implement payment refund logic
-        return ResponseEntity.ok().build();
+
+    /**
+     * Get invoice for a trip.
+     * GET /api/payments/invoice?tripId=3
+     */
+    @GetMapping("/invoice")
+    public ResponseEntity<PaymentResponseDTO> getInvoice(@RequestParam Long tripId) {
+        Invoice invoice = paymentService.getInvoiceByTripId(tripId);
+        return ResponseEntity.ok(toDTO(invoice, "Invoice fetched."));
     }
-    
-    @GetMapping("/invoice/{invoiceId}")
-    public ResponseEntity<PaymentResponseDTO> getPaymentStatus(@PathVariable Long invoiceId) {
-        // TODO: Implement payment status retrieval logic
-        return ResponseEntity.ok().build();
+
+    /**
+     * Issue a refund for a cancelled trip.
+     * POST /api/payments/{invoiceId}/refund
+     */
+    @PostMapping("/{invoiceId}/refund")
+    public ResponseEntity<Map<String, String>> issueRefund(@PathVariable Long invoiceId) {
+        boolean success = paymentService.issueRefund(invoiceId);
+        String msg = success ? "Refund issued successfully." : "Refund failed.";
+        return ResponseEntity.ok(Map.of("message", msg));
     }
-    
-    @GetMapping("/customer/{customerId}")
-    public ResponseEntity<List<PaymentResponseDTO>> getCustomerPayments(@PathVariable Long customerId) {
-        // TODO: Implement customer payments retrieval logic
-        return ResponseEntity.ok().build();
+
+    /**
+     * Add a tip to a completed trip.
+     * POST /api/payments/{invoiceId}/tip
+     * Body: { "amount": 50.0 }
+     */
+    @PostMapping("/{invoiceId}/tip")
+    public ResponseEntity<PaymentResponseDTO> addTip(
+            @PathVariable Long invoiceId,
+            @RequestBody Map<String, Double> body) {
+        double tip = body.getOrDefault("amount", 0.0);
+        Invoice invoice = paymentService.addTip(invoiceId, tip);
+        return ResponseEntity.ok(toDTO(invoice, "Tip added successfully."));
     }
-    
-    @GetMapping("/driver/{driverId}")
-    public ResponseEntity<List<PaymentResponseDTO>> getDriverPayments(@PathVariable Long driverId) {
-        // TODO: Implement driver payments retrieval logic
-        return ResponseEntity.ok().build();
+
+    /**
+     * Settle driver payout after trip payment.
+     * POST /api/payments/{invoiceId}/settle
+     */
+    @PostMapping("/{invoiceId}/settle")
+    public ResponseEntity<Map<String, String>> settleDriverPayout(@PathVariable Long invoiceId) {
+        paymentService.settleDriverPayout(invoiceId);
+        return ResponseEntity.ok(Map.of("message", "Driver payout settled."));
     }
-    
-    @GetMapping("/pending")
-    public ResponseEntity<List<PaymentResponseDTO>> getPendingPayments() {
-        // TODO: Implement pending payments retrieval logic
-        return ResponseEntity.ok().build();
-    }
-    
-    @PostMapping("/retry/{invoiceId}")
-    public ResponseEntity<PaymentResponseDTO> retryPayment(@PathVariable Long invoiceId) {
-        // TODO: Implement payment retry logic
-        return ResponseEntity.ok().build();
-    }
-    
-    @GetMapping("/methods")
-    public ResponseEntity<List<String>> getAvailablePaymentMethods() {
-        // TODO: Implement payment methods retrieval logic
-        return ResponseEntity.ok().build();
-    }
-    
-    @PostMapping("/validate")
-    public ResponseEntity<Boolean> validatePayment(@RequestBody PaymentRequestDTO paymentRequest) {
-        // TODO: Implement payment validation logic
-        return ResponseEntity.ok().build();
-    }
-    
-    @GetMapping("/history/{userId}")
-    public ResponseEntity<List<PaymentResponseDTO>> getPaymentHistory(@PathVariable Long userId) {
-        // TODO: Implement payment history retrieval logic
-        return ResponseEntity.ok().build();
-    }
-    
-    @PostMapping("/settle/{driverId}")
-    public ResponseEntity<Void> settleDriverPayments(@PathVariable Long driverId) {
-        // TODO: Implement driver payment settlement logic
-        return ResponseEntity.ok().build();
-    }
-    
-    private PaymentRequestDTO validatePaymentRequest(PaymentRequestDTO paymentRequest) {
-        // TODO: Implement payment request validation logic
-        return paymentRequest;
-    }
-    
-    private boolean isPaymentValid(Long invoiceId) {
-        // TODO: Implement payment validation logic
-        return true;
-    }
-    
-    private Double calculateProcessingFee(Double amount) {
-        // TODO: Implement processing fee calculation logic
-        return 0.0;
+
+    // ---- Mapper ----
+    private PaymentResponseDTO toDTO(Invoice invoice, String message) {
+        PaymentResponseDTO dto = new PaymentResponseDTO();
+        dto.setInvoiceId(invoice.getId());
+        dto.setTotalAmount(invoice.getTotalAmount());
+        dto.setPaymentMethod(invoice.getPaymentMethod());
+        dto.setPaid(invoice.isPaid());
+        dto.setMessage(message);
+        return dto;
     }
 }
