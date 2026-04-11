@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: ride-hailing-platform
+  profiles:
+    active: dev  # Default to development profile
+  mvc:
+    throw-exception-if-no-handler-found: true
+  web:
+    resources:
+      add-mappings: false
+
+server:
+  port: 8080
+  error:
+    include-message: always
+    include-binding-errors: always
+    include-stacktrace: on_param
+    include-exception: false
+
+logging:
+  level:
+    com.platform: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG

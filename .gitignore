@@ -1,0 +1,29 @@
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+
+# Frontend
+frontend/node_modules/
+frontend/build/
+npm-debug.log*
+
+# Local DB (H2)
+data/*.db
+data/*.trace.db
+data/*.lock.db
+
+# IDE / OS
+.idea/
+*.iml
+.vscode/
+.DS_Store
+*.swp
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
