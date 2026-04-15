@@ -19,7 +19,7 @@ import {
   DollarSign
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { customerAPI, bookingAPI } from '../../services/api';
+import { customerAPI, bookingAPI, mapAPI } from '../../services/api';
 
 const CustomerInterface = ({ userInfo, onLogout }) => {
   const navigate = useNavigate();
@@ -35,6 +35,9 @@ const CustomerInterface = ({ userInfo, onLogout }) => {
   const [activeTrip, setActiveTrip] = useState(null);
   const [customerBookings, setCustomerBookings] = useState([]);
   const [customerTrips, setCustomerTrips] = useState([]);
+  const [rideOtp, setRideOtp] = useState('');
+  const [routeDistanceKm, setRouteDistanceKm] = useState(null);
+  const [mapUrl, setMapUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const customerId = userInfo?.userId;
 
@@ -54,6 +57,12 @@ const CustomerInterface = ({ userInfo, onLogout }) => {
       try {
         const res = await customerAPI.getTripById(activeTrip.id);
         setActiveTrip(res.data);
+        if (res.data.status === 'ASSIGNED') {
+          const otpResponse = await customerAPI.getRideOtp(activeTrip.id, customerId);
+          setRideOtp(otpResponse.data.otp || '');
+        } else {
+          setRideOtp('');
+        }
       } catch (e) {
         // ignore transient poll errors
       }
@@ -132,9 +141,15 @@ const CustomerInterface = ({ userInfo, onLogout }) => {
 
     try {
       setLoading(true);
+      const sourceGeo = await mapAPI.geocodeAddress(bookingForm.source);
+      const destinationGeo = await mapAPI.geocodeAddress(bookingForm.destination);
+      const actualDistanceKm = await mapAPI.getRouteDistanceKm(sourceGeo, destinationGeo);
+      setRouteDistanceKm(actualDistanceKm);
+      setMapUrl(`https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route=${sourceGeo.lat}%2C${sourceGeo.lon}%3B${destinationGeo.lat}%2C${destinationGeo.lon}`);
+
       const bookingData = {
-        source: bookingForm.source,
-        destination: bookingForm.destination,
+        source: `${sourceGeo.lat},${sourceGeo.lon}`,
+        destination: `${destinationGeo.lat},${destinationGeo.lon}`,
         serviceType: bookingForm.serviceType,
         vehicleCategory: bookingForm.vehicleCategory
       };
@@ -146,16 +161,19 @@ const CustomerInterface = ({ userInfo, onLogout }) => {
 
       setActiveBooking({
         ...response.data,
+        sourceLabel: bookingForm.source,
+        destinationLabel: bookingForm.destination,
+        routeDistanceKm: actualDistanceKm,
         status: 'SEARCHING',
       });
-      toast.success('Booking created! Drivers can now accept it.');
+      toast.success(`Booking created! Distance: ${actualDistanceKm.toFixed(2)} km`);
       setActiveTab('active');
       
       // Refresh bookings
       loadCustomerBookings();
     } catch (error) {
       console.error('Failed to create booking:', error);
-      toast.error('Failed to create booking');
+      toast.error(error.response?.data?.message || 'Failed to create booking');
     } finally {
       setLoading(false);
     }
@@ -318,10 +336,34 @@ const CustomerInterface = ({ userInfo, onLogout }) => {
                     <div className="flex items-center space-x-3">
                       <MapPin className="w-5 h-5 text-gray-400" />
                       <div>
-                        <div className="font-medium text-gray-900">From: {activeBooking.source}</div>
-                        <div className="text-sm text-gray-600">To: {activeBooking.destination}</div>
+                        <div className="font-medium text-gray-900">From: {activeBooking.sourceLabel || activeBooking.source}</div>
+                        <div className="text-sm text-gray-600">To: {activeBooking.destinationLabel || activeBooking.destination}</div>
                       </div>
                     </div>
+
+                    {activeBooking.routeDistanceKm != null && (
+                      <div className="p-3 bg-blue-50 rounded-lg text-sm text-blue-900">
+                        Estimated route distance: <span className="font-semibold">{activeBooking.routeDistanceKm.toFixed(2)} km</span>
+                      </div>
+                    )}
+
+                    {mapUrl && (
+                      <a
+                        href={mapUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="block text-sm text-primary-600 hover:text-primary-700"
+                      >
+                        Open route on map
+                      </a>
+                    )}
+
+                    {rideOtp && activeTrip?.status === 'ASSIGNED' && (
+                      <div className="p-4 rounded-lg bg-amber-50 border border-amber-200">
+                        <div className="text-sm text-amber-700">Share this OTP with driver at pickup</div>
+                        <div className="text-2xl font-bold tracking-widest text-amber-900">{rideOtp}</div>
+                      </div>
+                    )}
 
                     <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                       <div>

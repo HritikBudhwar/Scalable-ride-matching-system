@@ -19,6 +19,12 @@ public interface TripService {
     /** Driver accepts the booking — transitions SEARCHING → ASSIGNED. */
     Trip acceptTrip(Long tripId, Long driverId);
 
+    /** Driver verifies customer OTP to start trip (ASSIGNED -> IN_PROGRESS). */
+    Trip verifyRideStartOtp(Long tripId, Long driverId, String otp);
+
+    /** Customer reads OTP generated on driver accept. */
+    String getRideStartOtpForCustomer(Long tripId, Long customerId);
+
     /** Driver rejects — trip goes back to SEARCHING for re-matching. */
     void rejectTrip(Long tripId, Long driverId);
 

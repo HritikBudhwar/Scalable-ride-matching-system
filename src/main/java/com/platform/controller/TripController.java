@@ -53,6 +53,32 @@ public class TripController {
     }
 
     /**
+     * Driver submits customer OTP and starts the trip.
+     * POST /api/trips/{id}/verify-start-otp?driverId=5
+     * Body: { "otp": "482910" }
+     */
+    @PostMapping("/{id}/verify-start-otp")
+    public ResponseEntity<TripResponseDTO> verifyStartOtp(
+            @PathVariable Long id,
+            @RequestParam Long driverId,
+            @RequestBody TripUpdateDTO dto) {
+        Trip trip = tripService.verifyRideStartOtp(id, driverId, dto.getOtp());
+        return ResponseEntity.ok(toDTO(trip));
+    }
+
+    /**
+     * Customer fetches OTP generated after driver accepts.
+     * GET /api/trips/{id}/customer-otp?customerId=1
+     */
+    @GetMapping("/{id}/customer-otp")
+    public ResponseEntity<Map<String, String>> getCustomerRideOtp(
+            @PathVariable Long id,
+            @RequestParam Long customerId) {
+        String otp = tripService.getRideStartOtpForCustomer(id, customerId);
+        return ResponseEntity.ok(Map.of("otp", otp));
+    }
+
+    /**
      * Driver rejects a trip — triggers re-matching.
      * POST /api/trips/{id}/reject?driverId=5
      */

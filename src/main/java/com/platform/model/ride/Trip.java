@@ -53,6 +53,8 @@ public class Trip {
 
     // GPS path stored as JSON array string for simplicity
     private String routePath;
+    @Column(nullable = true)
+    private Boolean rideStartOtpVerified;
 
     @OneToOne(mappedBy = "trip", cascade = CascadeType.ALL)
     private Invoice invoice;
@@ -130,6 +132,8 @@ public class Trip {
 
     public String getRoutePath() { return routePath; }
     public void setRoutePath(String routePath) { this.routePath = routePath; }
+    public boolean isRideStartOtpVerified() { return Boolean.TRUE.equals(rideStartOtpVerified); }
+    public void setRideStartOtpVerified(boolean rideStartOtpVerified) { this.rideStartOtpVerified = rideStartOtpVerified; }
 
     public Invoice getInvoice() { return invoice; }
     public void setInvoice(Invoice invoice) { this.invoice = invoice; }

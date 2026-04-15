@@ -118,6 +118,14 @@ export const tripAPI = {
   // Accept trip
   acceptTrip: (tripId, driverId) => 
     api.post(`/trips/${tripId}/accept`, null, { params: { driverId } }),
+
+  // Driver verifies OTP to start trip
+  verifyStartOtp: (tripId, driverId, otp) =>
+    api.post(`/trips/${tripId}/verify-start-otp`, { otp }, { params: { driverId } }),
+
+  // Customer reads ride OTP
+  getCustomerRideOtp: (tripId, customerId) =>
+    api.get(`/trips/${tripId}/customer-otp`, { params: { customerId } }),
   
   // Reject trip
   rejectTrip: (tripId, driverId) => 
@@ -167,6 +175,8 @@ export const driverAPI = {
   acceptTrip: (tripId, driverId) => api.post(`/trips/${tripId}/accept`, null, { params: { driverId } }),
   rejectTrip: (tripId, driverId) => api.post(`/trips/${tripId}/reject`, null, { params: { driverId } }),
   updateTripStatus: (tripId, status) => api.put(`/trips/${tripId}/status`, { newStatus: status }),
+  verifyStartOtp: (tripId, driverId, otp) =>
+    api.post(`/trips/${tripId}/verify-start-otp`, { otp }, { params: { driverId } }),
   updateLocation: (tripId, geoPoint) => api.put(`/trips/${tripId}/location`, { geoPoint }),
   completeParcel: (tripId, otp) => api.post(`/trips/${tripId}/complete-parcel`, { otp }),
   
@@ -191,6 +201,41 @@ export const customerAPI = {
   // Trip history using TripController
   getTripHistory: (customerId) => api.get('/trips', { params: { customerId } }),
   getTripById: (tripId) => api.get(`/trips/${tripId}`),
+  getRideOtp: (tripId, customerId) =>
+    api.get(`/trips/${tripId}/customer-otp`, { params: { customerId } }),
+};
+
+export const mapAPI = {
+  geocodeAddress: async (query) => {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`;
+    const response = await fetch(url, {
+      headers: { Accept: 'application/json' },
+    });
+    if (!response.ok) {
+      throw new Error('Failed to geocode address');
+    }
+    const data = await response.json();
+    if (!data.length) {
+      throw new Error('Location not found');
+    }
+    return {
+      lat: parseFloat(data[0].lat),
+      lon: parseFloat(data[0].lon),
+      displayName: data[0].display_name,
+    };
+  },
+  getRouteDistanceKm: async (sourceCoords, destinationCoords) => {
+    const url = `https://router.project-osrm.org/route/v1/driving/${sourceCoords.lon},${sourceCoords.lat};${destinationCoords.lon},${destinationCoords.lat}?overview=false`;
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error('Failed to fetch route distance');
+    }
+    const data = await response.json();
+    if (!data.routes?.length) {
+      throw new Error('Route not available');
+    }
+    return data.routes[0].distance / 1000;
+  },
 };
 
 export default api;

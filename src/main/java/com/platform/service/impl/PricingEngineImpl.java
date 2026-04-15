@@ -89,11 +89,41 @@ public class PricingEngineImpl implements PricingEngine {
      */
     private double calculateSimulatedDistance(String source, String destination) {
         if (source == null || destination == null) return 10.0;
-        
+
+        Double coordinateDistance = calculateCoordinateDistance(source, destination);
+        if (coordinateDistance != null && coordinateDistance > 0) {
+            return Math.round(coordinateDistance * 10.0) / 10.0;
+        }
+
         int combinedHash = Math.abs(source.hashCode() ^ destination.hashCode());
-        double distance = (combinedHash % 25) + 2.0; 
-        
+        double distance = (combinedHash % 25) + 2.0;
         return Math.round(distance * 10.0) / 10.0;
+    }
+
+    private Double calculateCoordinateDistance(String source, String destination) {
+        try {
+            String[] sourceParts = source.split(",");
+            String[] destinationParts = destination.split(",");
+            if (sourceParts.length != 2 || destinationParts.length != 2) {
+                return null;
+            }
+
+            double lat1 = Double.parseDouble(sourceParts[0].trim());
+            double lon1 = Double.parseDouble(sourceParts[1].trim());
+            double lat2 = Double.parseDouble(destinationParts[0].trim());
+            double lon2 = Double.parseDouble(destinationParts[1].trim());
+
+            double earthRadiusKm = 6371.0;
+            double dLat = Math.toRadians(lat2 - lat1);
+            double dLon = Math.toRadians(lon2 - lon1);
+            double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+                    + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                    * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return earthRadiusKm * c;
+        } catch (Exception ignored) {
+            return null;
+        }
     }
 
     /**

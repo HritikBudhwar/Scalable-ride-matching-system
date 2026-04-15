@@ -32,6 +32,7 @@ const DriverInterface = ({ userInfo, onLogout }) => {
   const [currentTrip, setCurrentTrip] = useState(null);
   const [driverTrips, setDriverTrips] = useState([]);
   const [availableTrips, setAvailableTrips] = useState([]);
+  const [startOtp, setStartOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const driverId = userInfo?.userId;
 
@@ -91,9 +92,10 @@ const DriverInterface = ({ userInfo, onLogout }) => {
     try {
       setLoading(true);
       await driverAPI.acceptTrip(trip.id, driverId);
-      setCurrentTrip(trip);
+      const freshTrip = await driverAPI.getTripById(trip.id);
+      setCurrentTrip(freshTrip.data);
       setIsOnline(false);
-      toast.success(`Trip accepted! Pickup at ${trip.source}`);
+      toast.success(`Trip accepted! Ask customer for ride OTP at pickup.`);
       setActiveTab('current');
       // Refresh trips
       loadDriverTrips();
@@ -119,6 +121,26 @@ const DriverInterface = ({ userInfo, onLogout }) => {
     } catch (error) {
       console.error('Failed to complete trip:', error);
       toast.error('Failed to complete trip');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyStartOtp = async () => {
+    if (!currentTrip?.id) return;
+    if (!startOtp.trim()) {
+      toast.error('Enter customer OTP first');
+      return;
+    }
+    try {
+      setLoading(true);
+      const response = await driverAPI.verifyStartOtp(currentTrip.id, driverId, startOtp.trim());
+      setCurrentTrip(response.data);
+      setStartOtp('');
+      toast.success('OTP verified. Trip started successfully.');
+    } catch (error) {
+      console.error('Failed to verify ride OTP:', error);
+      toast.error(error.response?.data?.message || 'Invalid OTP');
     } finally {
       setLoading(false);
     }
@@ -247,7 +269,7 @@ const DriverInterface = ({ userInfo, onLogout }) => {
                   <div className="flex items-center justify-between mb-6">
                     <h3 className="text-xl font-semibold text-gray-900">Current Trip</h3>
                     <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                      In Progress
+                      {currentTrip.status || 'ASSIGNED'}
                     </span>
                   </div>
 
@@ -300,6 +322,28 @@ const DriverInterface = ({ userInfo, onLogout }) => {
                       </div>
                     </div>
 
+                    {currentTrip.status === 'ASSIGNED' && (
+                      <div className="space-y-3 p-4 bg-amber-50 rounded-lg border border-amber-200">
+                        <div className="text-sm text-amber-800">
+                          Enter OTP from customer to unlock trip start:
+                        </div>
+                        <input
+                          type="text"
+                          maxLength={6}
+                          value={startOtp}
+                          onChange={(e) => setStartOtp(e.target.value.replace(/\D/g, ''))}
+                          placeholder="6-digit OTP"
+                          className="input-field"
+                        />
+                        <button
+                          onClick={handleVerifyStartOtp}
+                          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
+                        >
+                          Verify OTP & Start Trip
+                        </button>
+                      </div>
+                    )}
+
                     <div className="flex space-x-3">
                       <button
                         onClick={handleContactCustomer}
@@ -310,6 +354,7 @@ const DriverInterface = ({ userInfo, onLogout }) => {
                       </button>
                       <button
                         onClick={handleCompleteTrip}
+                        disabled={currentTrip.status !== 'IN_PROGRESS'}
                         className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center"
                       >
                         <CheckCircle className="w-5 h-5 mr-2" />

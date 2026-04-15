@@ -11,6 +11,7 @@ import com.platform.repository.DriverRepository;
 import com.platform.repository.ParcelRepository;
 import com.platform.repository.TripRepository;
 import com.platform.service.NotificationService;
+import com.platform.service.OTPManager;
 import com.platform.service.PricingEngine;
 import com.platform.service.TripService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,7 @@ public class TripServiceImpl implements TripService {
     private final ParcelRepository parcelRepository;
     private final PricingEngine pricingEngine;
     private final NotificationService notificationService;
+    private final OTPManager otpManager;
 
     @Autowired
     public TripServiceImpl(TripRepository tripRepository,
@@ -35,13 +37,15 @@ public class TripServiceImpl implements TripService {
                             CustomerRepository customerRepository,
                             ParcelRepository parcelRepository,
                             PricingEngine pricingEngine,
-                            NotificationService notificationService) {
+                            NotificationService notificationService,
+                            OTPManager otpManager) {
         this.tripRepository = tripRepository;
         this.driverRepository = driverRepository;
         this.customerRepository = customerRepository;
         this.parcelRepository = parcelRepository;
         this.pricingEngine = pricingEngine;
         this.notificationService = notificationService;
+        this.otpManager = otpManager;
     }
 
     @Override
@@ -73,15 +77,58 @@ public class TripServiceImpl implements TripService {
         driver.setDriverStatus(DriverStatus.ON_TRIP);
         driverRepository.save(driver);
 
-        // Start trip immediately after accept (ASSIGNED -> IN_PROGRESS)
-        if (trip.getTripStatus() == TripStatus.ASSIGNED) {
-            trip.updateStatus(TripStatus.IN_PROGRESS);
-        }
+        String otpContext = buildRideStartOtpContext(trip.getId());
+        String rideStartOtp = otpManager.generateOTP(otpContext);
 
         notificationService.notifyCustomer(trip.getCustomer().getId(),
-            "Your driver " + driver.getFirstName() + " has accepted the ride and is on the way!");
+            "Your driver " + driver.getFirstName() + " has accepted the ride. Share ride OTP " + rideStartOtp + " with the driver at pickup.");
 
         return tripRepository.save(trip);
+    }
+
+    @Override
+    @Transactional
+    public Trip verifyRideStartOtp(Long tripId, Long driverId, String otp) {
+        Trip trip = getTrip(tripId);
+        if (trip.getTripStatus() != TripStatus.ASSIGNED) {
+            throw new IllegalStateException("Ride OTP can only be verified in ASSIGNED state.");
+        }
+        if (trip.getDriver() == null || !trip.getDriver().getId().equals(driverId)) {
+            throw new IllegalStateException("You are not assigned to this trip.");
+        }
+        if (otp == null || otp.isBlank()) {
+            throw new IllegalArgumentException("OTP is required.");
+        }
+
+        String otpContext = buildRideStartOtpContext(tripId);
+        if (!otpManager.validateOTP(otpContext, otp.trim())) {
+            throw new IllegalStateException("Invalid or expired OTP.");
+        }
+
+        otpManager.invalidateOTP(otpContext);
+        trip.setRideStartOtpVerified(true);
+        trip.updateStatus(TripStatus.IN_PROGRESS);
+
+        notificationService.notifyCustomer(trip.getCustomer().getId(),
+                "Your trip has started after OTP verification.");
+        return tripRepository.save(trip);
+    }
+
+    @Override
+    public String getRideStartOtpForCustomer(Long tripId, Long customerId) {
+        Trip trip = getTrip(tripId);
+        if (trip.getCustomer() == null || !trip.getCustomer().getId().equals(customerId)) {
+            throw new IllegalStateException("This trip does not belong to the customer.");
+        }
+        if (trip.getTripStatus() != TripStatus.ASSIGNED || trip.isRideStartOtpVerified()) {
+            throw new IllegalStateException("Ride OTP is not available for current trip state.");
+        }
+
+        String otp = otpManager.getOTP(buildRideStartOtpContext(tripId));
+        if (otp == null) {
+            throw new IllegalStateException("Ride OTP expired. Ask driver to re-accept trip.");
+        }
+        return otp;
     }
 
     @Override
@@ -117,6 +164,9 @@ public class TripServiceImpl implements TripService {
     @Transactional
     public Trip updateTripStatus(Long tripId, TripStatus newStatus) {
         Trip trip = getTrip(tripId);
+        if (newStatus == TripStatus.COMPLETED && !trip.isRideStartOtpVerified()) {
+            throw new IllegalStateException("Trip cannot be completed before OTP verification.");
+        }
 
         // State machine logic is strictly enforced inside the Trip entity's updateStatus()
         trip.updateStatus(newStatus);
@@ -225,5 +275,9 @@ public class TripServiceImpl implements TripService {
     private Driver getDriver(Long driverId) {
         return driverRepository.findById(driverId)
                 .orElseThrow(() -> new IllegalArgumentException("Driver record not found for ID: " + driverId));
+    }
+
+    private String buildRideStartOtpContext(Long tripId) {
+        return "TRIP_START_" + tripId;
     }
 }

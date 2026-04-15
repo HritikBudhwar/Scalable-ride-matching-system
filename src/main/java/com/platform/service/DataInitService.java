@@ -14,6 +14,7 @@ import com.platform.repository.AdministratorRepository;
 import com.platform.repository.CustomerRepository;
 import com.platform.repository.DriverRepository;
 import com.platform.repository.VehicleRepository;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * Initialize sample data for demo purposes
@@ -25,22 +26,36 @@ public class DataInitService implements CommandLineRunner {
     private final DriverRepository driverRepository;
     private final AdministratorRepository administratorRepository;
     private final VehicleRepository vehicleRepository;
+    private final JdbcTemplate jdbcTemplate;
 
     public DataInitService(CustomerRepository customerRepository,
                            DriverRepository driverRepository,
                            AdministratorRepository administratorRepository,
-                           VehicleRepository vehicleRepository) {
+                           VehicleRepository vehicleRepository,
+                           JdbcTemplate jdbcTemplate) {
         this.customerRepository = customerRepository;
         this.driverRepository = driverRepository;
         this.administratorRepository = administratorRepository;
         this.vehicleRepository = vehicleRepository;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
     @Transactional
     public void run(String... args) throws Exception {
+        // Keep schema evolution resilient for existing local H2 data.
+        ensureOtpColumnExists();
         // Seed demo users only if missing (do NOT delete data).
         seedDemoUsersIfMissing();
+    }
+
+    private void ensureOtpColumnExists() {
+        jdbcTemplate.execute(
+                "ALTER TABLE trips ADD COLUMN IF NOT EXISTS ride_start_otp_verified BOOLEAN DEFAULT FALSE"
+        );
+        jdbcTemplate.execute(
+                "UPDATE trips SET ride_start_otp_verified = FALSE WHERE ride_start_otp_verified IS NULL"
+        );
     }
 
     private void seedDemoUsersIfMissing() {
