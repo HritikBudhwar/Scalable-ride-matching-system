@@ -11,4 +11,6 @@ public interface PricingEngine {
     Double estimateFare(BookingRequest request);
     
     void generateInvoice(Trip trip);
+
+    Double calculateDistance(String source, String destination);
 }

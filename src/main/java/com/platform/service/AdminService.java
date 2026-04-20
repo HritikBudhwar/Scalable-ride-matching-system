@@ -1,6 +1,8 @@
 package com.platform.service;
 
 import com.platform.model.user.Driver;
+import com.platform.model.user.User;
+import com.platform.model.ride.Trip;
 
 import java.util.List;
 import java.util.Map;
@@ -27,6 +29,12 @@ public interface AdminService {
 
     /** Returns pending driver approvals. */
     List<Driver> getPendingDriverApprovals();
+
+    /** Returns all registered users. */
+    List<User> getAllUsers();
+
+    /** Returns all trips ordered by newest first. */
+    List<Trip> getAllTrips();
 
     /**
      * Generates a summary stats map — active trips, revenue, cancellations.

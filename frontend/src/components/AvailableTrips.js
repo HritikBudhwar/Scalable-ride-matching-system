@@ -218,8 +218,20 @@ const AvailableTrips = ({ userInfo, onTripAccepted }) => {
               <div className="flex items-center">
                 <DollarSign className="w-5 h-5 text-amber-600 mr-3" />
                 <div>
-                  <p className="text-sm text-gray-600">Estimated</p>
-                  <p className="font-semibold text-gray-900 text-lg">₹299</p>
+                  <p className="text-sm text-gray-600">Estimated Fare</p>
+                  <p className="font-semibold text-gray-900 text-lg">
+                    {trip.estimatedFare != null ? `₹${trip.estimatedFare}` : 'Calculating...'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center">
+                <Clock className="w-5 h-5 text-purple-600 mr-3" />
+                <div>
+                  <p className="text-sm text-gray-600">Estimated Distance</p>
+                  <p className="font-semibold text-gray-900 text-lg">
+                    {trip.estimatedDistance != null ? `${trip.estimatedDistance} km` : 'N/A'}
+                  </p>
                 </div>
               </div>
             </div>

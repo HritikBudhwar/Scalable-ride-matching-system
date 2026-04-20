@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { customerAPI, bookingAPI, mapAPI } from '../../services/api';
+import PaymentPage from './PaymentPage';
 
 const CustomerInterface = ({ userInfo, onLogout }) => {
   const navigate = useNavigate();
@@ -39,6 +40,8 @@ const CustomerInterface = ({ userInfo, onLogout }) => {
   const [routeDistanceKm, setRouteDistanceKm] = useState(null);
   const [mapUrl, setMapUrl] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPayment, setShowPayment] = useState(false);
+  const [completedTrip, setCompletedTrip] = useState(null);
   const customerId = userInfo?.userId;
 
   // Load customer data on component mount
@@ -60,6 +63,15 @@ const CustomerInterface = ({ userInfo, onLogout }) => {
         if (res.data.status === 'ASSIGNED') {
           const otpResponse = await customerAPI.getRideOtp(activeTrip.id, customerId);
           setRideOtp(otpResponse.data.otp || '');
+        } else if (res.data.status === 'COMPLETED') {
+          // Trip completed by driver — redirect customer to payment
+          setCompletedTrip(res.data);
+          setShowPayment(true);
+          setActiveBooking(null);
+          setActiveTrip(null);
+          setRideOtp('');
+          toast.success('Your ride is completed! Please proceed to payment.');
+          return; // Stop polling
         } else {
           setRideOtp('');
         }
@@ -116,7 +128,7 @@ const CustomerInterface = ({ userInfo, onLogout }) => {
       source: 'Downtown Plaza',
       destination: 'Airport Terminal 2',
       driver: 'John Smith',
-      fare: '$25.50',
+      fare: '₹425.50',
       status: 'completed',
       rating: 5
     },
@@ -127,7 +139,7 @@ const CustomerInterface = ({ userInfo, onLogout }) => {
       source: 'Home',
       destination: 'Office Building',
       driver: 'Sarah Johnson',
-      fare: '$12.75',
+      fare: '₹212.75',
       status: 'completed',
       rating: 4
     }
@@ -141,12 +153,35 @@ const CustomerInterface = ({ userInfo, onLogout }) => {
 
     try {
       setLoading(true);
-      const sourceGeo = await mapAPI.geocodeAddress(bookingForm.source);
-      const destinationGeo = await mapAPI.geocodeAddress(bookingForm.destination);
-      const actualDistanceKm = await mapAPI.getRouteDistanceKm(sourceGeo, destinationGeo);
-      setRouteDistanceKm(actualDistanceKm);
+
+      // Step 1: Geocode addresses — show a clear error if location not found
+      let sourceGeo, destinationGeo;
+      try {
+        sourceGeo = await mapAPI.geocodeAddress(bookingForm.source);
+      } catch (e) {
+        toast.error('Pickup location not found. Try a more specific address.');
+        setLoading(false);
+        return;
+      }
+      try {
+        destinationGeo = await mapAPI.geocodeAddress(bookingForm.destination);
+      } catch (e) {
+        toast.error('Destination not found. Try a more specific address.');
+        setLoading(false);
+        return;
+      }
+
+      // Step 2: Get route distance — fall back gracefully if OSRM is unavailable
+      let actualDistanceKm = 0;
+      try {
+        actualDistanceKm = await mapAPI.getRouteDistanceKm(sourceGeo, destinationGeo);
+      } catch (e) {
+        console.warn('Could not fetch route distance, proceeding without it:', e.message);
+      }
+      setRouteDistanceKm(actualDistanceKm || null);
       setMapUrl(`https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route=${sourceGeo.lat}%2C${sourceGeo.lon}%3B${destinationGeo.lat}%2C${destinationGeo.lon}`);
 
+      // Step 3: Create booking on backend
       const bookingData = {
         source: `${sourceGeo.lat},${sourceGeo.lon}`,
         destination: `${destinationGeo.lat},${destinationGeo.lon}`,
@@ -155,7 +190,8 @@ const CustomerInterface = ({ userInfo, onLogout }) => {
       };
 
       const response = await customerAPI.createBooking(bookingData, customerId);
-      // Confirm immediately to create a SEARCHING trip visible to drivers
+
+      // Step 4: Confirm booking to create a SEARCHING trip visible to drivers
       const tripRes = await bookingAPI.confirmBooking(response.data.id);
       setActiveTrip(tripRes.data);
 
@@ -163,17 +199,23 @@ const CustomerInterface = ({ userInfo, onLogout }) => {
         ...response.data,
         sourceLabel: bookingForm.source,
         destinationLabel: bookingForm.destination,
-        routeDistanceKm: actualDistanceKm,
+        routeDistanceKm: actualDistanceKm || null,
         status: 'SEARCHING',
       });
-      toast.success(`Booking created! Distance: ${actualDistanceKm.toFixed(2)} km`);
+
+      const distanceMsg = actualDistanceKm
+        ? ` Distance: ${actualDistanceKm.toFixed(2)} km`
+        : '';
+      toast.success(`Booking created!${distanceMsg} Searching for drivers...`);
       setActiveTab('active');
-      
-      // Refresh bookings
+
+      // Refresh bookings list
       loadCustomerBookings();
     } catch (error) {
-      console.error('Failed to create booking:', error);
-      toast.error(error.response?.data?.message || 'Failed to create booking');
+      console.error('Booking error:', error);
+      // Show backend message if available, otherwise a generic fallback
+      const msg = error.response?.data?.message || error.message || 'Failed to create booking';
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -210,6 +252,26 @@ const CustomerInterface = ({ userInfo, onLogout }) => {
   };
 
   const renderContent = () => {
+    // Show payment page if trip was completed
+    if (showPayment && completedTrip) {
+      return (
+        <PaymentPage
+          trip={completedTrip}
+          onPaymentComplete={() => {
+            setShowPayment(false);
+            setCompletedTrip(null);
+            setActiveTab('home');
+            loadCustomerTrips();
+          }}
+          onBack={() => {
+            setShowPayment(false);
+            setCompletedTrip(null);
+            setActiveTab('home');
+          }}
+        />
+      );
+    }
+
     switch (activeTab) {
       case 'home':
         return (

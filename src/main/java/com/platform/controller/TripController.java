@@ -167,6 +167,8 @@ public class TripController {
         dto.setDestination(t.getDestination());
         dto.setStatus(t.getTripStatus());
         dto.setDistanceTraveled(t.getDistanceTraveled());
+        dto.setEstimatedFare(t.getEstimatedFare());
+        dto.setEstimatedDistance(t.getEstimatedDistance());
         dto.setStartTime(t.getStartTime());
         dto.setEndTime(t.getEndTime());
         if (t.getCustomer() != null) {

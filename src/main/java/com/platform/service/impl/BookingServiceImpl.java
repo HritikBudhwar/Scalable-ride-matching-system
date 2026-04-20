@@ -5,7 +5,6 @@ import com.platform.model.enums.TripStatus;
 import com.platform.model.ride.BookingRequest;
 import com.platform.model.ride.Trip;
 import com.platform.model.user.Customer;
-import com.platform.model.user.Driver;
 import com.platform.repository.BookingRequestRepository;
 import com.platform.repository.CustomerRepository;
 import com.platform.repository.TripRepository;
@@ -88,6 +87,8 @@ public class BookingServiceImpl implements BookingService {
         trip.setCustomer(booking.getCustomer());
         trip.setSource(booking.getSource());
         trip.setDestination(booking.getDestination());
+        trip.setEstimatedFare(booking.getEstimatedFare());
+        trip.setEstimatedDistance(pricingEngine.calculateDistance(booking.getSource(), booking.getDestination()));
         trip.updateStatus(TripStatus.SEARCHING);
 
         // Marketplace flow: trip stays SEARCHING with no driver until a driver accepts it.

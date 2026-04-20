@@ -36,7 +36,9 @@ public class PricingEngineImpl implements PricingEngine {
         double baseFare = getBaseFare(category);
         double perKmRate = getPerKmRate(category);
         
-        double estimate = baseFare + (distance * perKmRate);
+        double subtotal = baseFare + (distance * perKmRate);
+        double tax = subtotal * 0.05; // 5% GST — must match generateInvoice()
+        double estimate = subtotal + tax;
         
         // Return rounded to 2 decimal places
         return Math.round(estimate * 100.0) / 100.0;
@@ -50,8 +52,17 @@ public class PricingEngineImpl implements PricingEngine {
                 ? trip.getDistanceTraveled() 
                 : calculateSimulatedDistance(trip.getSource(), trip.getDestination());
                 
-        // FIXED: Get VehicleCategory directly from the vehicle assigned to the trip
-        VehicleCategory category = trip.getVehicle().getVehicleCategory();
+        // Safe vehicle category fetch — Hibernate proxy may be non-null but back a null row,
+        // so we use try-catch rather than a simple != null check.
+        VehicleCategory category = null;
+        try {
+            if (trip.getVehicle() != null) {
+                category = trip.getVehicle().getVehicleCategory();
+            }
+        } catch (Exception e) {
+            // Vehicle proxy uninitialized or vehicle record missing → fall back to default rates
+            category = null;
+        }
         
         double baseFare = getBaseFare(category);
         double distanceCharge = distance * getPerKmRate(category);
@@ -98,6 +109,11 @@ public class PricingEngineImpl implements PricingEngine {
         int combinedHash = Math.abs(source.hashCode() ^ destination.hashCode());
         double distance = (combinedHash % 25) + 2.0;
         return Math.round(distance * 10.0) / 10.0;
+    }
+
+    @Override
+    public Double calculateDistance(String source, String destination) {
+        return calculateSimulatedDistance(source, destination);
     }
 
     private Double calculateCoordinateDistance(String source, String destination) {

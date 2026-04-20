@@ -25,6 +25,25 @@ import toast from 'react-hot-toast';
 import { driverAPI, tripAPI } from '../../services/api';
 import AvailableTrips from '../AvailableTrips';
 
+// Reverse geocode helper: resolves "lat,lng" to a human-readable location name
+const reverseGeocode = async (coordString) => {
+  if (!coordString) return null;
+  try {
+    const parts = coordString.split(',');
+    if (parts.length !== 2) return null;
+    const [lat, lon] = parts.map(s => s.trim());
+    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=16&addressdetails=1`;
+    const response = await fetch(url, { headers: { Accept: 'application/json' } });
+    if (!response.ok) return null;
+    const data = await response.json();
+    // Prefer a short name: suburb, neighbourhood, city
+    const addr = data.address || {};
+    return addr.suburb || addr.neighbourhood || addr.city_district || addr.city || addr.town || data.display_name?.split(',').slice(0, 2).join(',') || null;
+  } catch {
+    return null;
+  }
+};
+
 const DriverInterface = ({ userInfo, onLogout }) => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('home');
@@ -34,6 +53,8 @@ const DriverInterface = ({ userInfo, onLogout }) => {
   const [availableTrips, setAvailableTrips] = useState([]);
   const [startOtp, setStartOtp] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resolvedSourceName, setResolvedSourceName] = useState(null);
+  const [resolvedDestName, setResolvedDestName] = useState(null);
   const driverId = userInfo?.userId;
 
   // Mock earnings data - would come from backend
@@ -88,6 +109,17 @@ const DriverInterface = ({ userInfo, onLogout }) => {
     }
   }, [isOnline]);
 
+  // Reverse geocode source/destination when currentTrip changes
+  useEffect(() => {
+    if (!currentTrip) {
+      setResolvedSourceName(null);
+      setResolvedDestName(null);
+      return;
+    }
+    reverseGeocode(currentTrip.source).then(setResolvedSourceName);
+    reverseGeocode(currentTrip.destination).then(setResolvedDestName);
+  }, [currentTrip?.id, currentTrip?.source, currentTrip?.destination]);
+
   const handleAcceptTrip = async (trip) => {
     try {
       setLoading(true);
@@ -120,7 +152,7 @@ const DriverInterface = ({ userInfo, onLogout }) => {
       loadDriverTrips();
     } catch (error) {
       console.error('Failed to complete trip:', error);
-      toast.error('Failed to complete trip');
+      toast.error(error.response?.data?.message || 'Failed to complete trip');
     } finally {
       setLoading(false);
     }
@@ -195,7 +227,7 @@ const DriverInterface = ({ userInfo, onLogout }) => {
                     <div className="text-sm text-gray-600">Trips Today</div>
                   </div>
                   <div className="text-center p-4 bg-green-50 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">${earningsData.today}</div>
+                    <div className="text-2xl font-bold text-green-600">₹{earningsData.today}</div>
                     <div className="text-sm text-gray-600">Earned Today</div>
                   </div>
                 </div>
@@ -237,7 +269,7 @@ const DriverInterface = ({ userInfo, onLogout }) => {
                   </div>
                   <div>
                     <div className="text-sm text-gray-600">This Week</div>
-                    <div className="font-semibold text-gray-900">${earningsData.week}</div>
+                    <div className="font-semibold text-gray-900">₹{earningsData.week}</div>
                   </div>
                 </div>
               </div>
@@ -248,7 +280,7 @@ const DriverInterface = ({ userInfo, onLogout }) => {
                   </div>
                   <div>
                     <div className="text-sm text-gray-600">This Month</div>
-                    <div className="font-semibold text-gray-900">${earningsData.month}</div>
+                    <div className="font-semibold text-gray-900">₹{earningsData.month}</div>
                   </div>
                 </div>
               </div>
@@ -292,7 +324,10 @@ const DriverInterface = ({ userInfo, onLogout }) => {
                         </div>
                         <div className="flex-1">
                           <div className="text-sm text-gray-600">Pickup</div>
-                          <div className="font-medium text-gray-900">{currentTrip.source}</div>
+                          <div className="font-medium text-gray-900">
+                            {currentTrip.source}
+                            {resolvedSourceName && <span className="text-sm text-gray-500 ml-1">({resolvedSourceName})</span>}
+                          </div>
                         </div>
                       </div>
 
@@ -302,22 +337,25 @@ const DriverInterface = ({ userInfo, onLogout }) => {
                         </div>
                         <div className="flex-1">
                           <div className="text-sm text-gray-600">Destination</div>
-                          <div className="font-medium text-gray-900">{currentTrip.destination}</div>
+                          <div className="font-medium text-gray-900">
+                            {currentTrip.destination}
+                            {resolvedDestName && <span className="text-sm text-gray-500 ml-1">({resolvedDestName})</span>}
+                          </div>
                         </div>
                       </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
                       <div>
-                        <div className="text-sm text-gray-600">Distance</div>
+                        <div className="text-sm text-gray-600">Est. Distance</div>
                         <div className="text-lg font-semibold text-gray-900">
-                          {currentTrip.distanceTraveled != null ? `${currentTrip.distanceTraveled} km` : 'N/A'}
+                          {currentTrip.estimatedDistance != null ? `${currentTrip.estimatedDistance} km` : 'N/A'}
                         </div>
                       </div>
                       <div>
-                        <div className="text-sm text-gray-600">Estimated Fare</div>
+                        <div className="text-sm text-gray-600">Est. Fare</div>
                         <div className="text-lg font-semibold text-gray-900">
-                          {currentTrip.invoiceTotal != null ? `₹${currentTrip.invoiceTotal}` : 'N/A'}
+                          {currentTrip.estimatedFare != null ? `₹${currentTrip.estimatedFare}` : 'N/A'}
                         </div>
                       </div>
                     </div>
@@ -415,7 +453,7 @@ const DriverInterface = ({ userInfo, onLogout }) => {
                       </div>
                       <div className="text-right">
                         <div className="font-semibold text-gray-900">
-                          ${trip.invoiceTotal || 'N/A'}
+                          {trip.invoiceTotal != null ? `₹${trip.invoiceTotal}` : 'N/A'}
                         </div>
                         <div className="flex items-center space-x-1">
                           {[...Array(5)].map((_, i) => (
@@ -476,21 +514,21 @@ const DriverInterface = ({ userInfo, onLogout }) => {
             <div className="grid grid-cols-2 gap-4">
               <div className="card p-4">
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-primary-600">${earningsData.today}</div>
+                  <div className="text-3xl font-bold text-primary-600">₹{earningsData.today}</div>
                   <div className="text-sm text-gray-600">Today's Earnings</div>
                   <div className="text-xs text-gray-500 mt-1">{earningsData.tripsToday} trips</div>
                 </div>
               </div>
               <div className="card p-4">
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-green-600">${earningsData.week}</div>
+                  <div className="text-3xl font-bold text-green-600">₹{earningsData.week}</div>
                   <div className="text-sm text-gray-600">This Week</div>
                   <div className="text-xs text-gray-500 mt-1">{earningsData.tripsWeek} trips</div>
                 </div>
               </div>
               <div className="card p-4">
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-purple-600">${earningsData.month}</div>
+                  <div className="text-3xl font-bold text-purple-600">₹{earningsData.month}</div>
                   <div className="text-sm text-gray-600">This Month</div>
                   <div className="text-xs text-gray-500 mt-1">{earningsData.tripsMonth} trips</div>
                 </div>
@@ -498,7 +536,7 @@ const DriverInterface = ({ userInfo, onLogout }) => {
               <div className="card p-4">
                 <div className="text-center">
                   <div className="text-3xl font-bold text-orange-600">
-                    ${(earningsData.month / earningsData.tripsMonth).toFixed(2)}
+                    ₹{(earningsData.month / earningsData.tripsMonth).toFixed(2)}
                   </div>
                   <div className="text-sm text-gray-600">Avg per Trip</div>
                   <div className="text-xs text-gray-500 mt-1">Monthly average</div>
@@ -512,15 +550,15 @@ const DriverInterface = ({ userInfo, onLogout }) => {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Total Earnings</span>
-                    <span className="font-medium text-gray-900">${earningsData.month}</span>
+                    <span className="font-medium text-gray-900">₹{earningsData.month}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Platform Fee (10%)</span>
-                    <span className="font-medium text-red-600">-${(earningsData.month * 0.1).toFixed(2)}</span>
+                    <span className="font-medium text-red-600">-₹{(earningsData.month * 0.1).toFixed(2)}</span>
                   </div>
                   <div className="border-t pt-2 flex justify-between">
                     <span className="font-medium text-gray-900">Net Earnings</span>
-                    <span className="font-bold text-green-600">${(earningsData.month * 0.9).toFixed(2)}</span>
+                    <span className="font-bold text-green-600">₹{(earningsData.month * 0.9).toFixed(2)}</span>
                   </div>
                 </div>
               </div>

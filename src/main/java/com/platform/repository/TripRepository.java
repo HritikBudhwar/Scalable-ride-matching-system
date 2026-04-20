@@ -19,4 +19,5 @@ public interface TripRepository extends JpaRepository<Trip, Long> {
     Optional<Trip> findByDriverAndTripStatus(Driver driver, TripStatus status);
     List<Trip> findByCustomerOrderByCreatedAtDesc(Customer customer);
     List<Trip> findByDriverOrderByCreatedAtDesc(Driver driver);
+    List<Trip> findAllByOrderByCreatedAtDesc();
 }

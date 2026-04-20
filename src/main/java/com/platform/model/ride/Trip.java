@@ -141,6 +141,8 @@ public class Trip {
     public LocalDateTime getCreatedAt() { return createdAt; }
 
     private Double totalFare;
+    private Double estimatedFare;
+    private Double estimatedDistance;
 
     public Double getTotalFare() {
         return totalFare;
@@ -148,5 +150,21 @@ public class Trip {
 
     public void setTotalFare(Double totalFare) {
         this.totalFare = totalFare;
+    }
+
+    public Double getEstimatedFare() {
+        return estimatedFare;
+    }
+
+    public void setEstimatedFare(Double estimatedFare) {
+        this.estimatedFare = estimatedFare;
+    }
+
+    public Double getEstimatedDistance() {
+        return estimatedDistance;
+    }
+
+    public void setEstimatedDistance(Double estimatedDistance) {
+        this.estimatedDistance = estimatedDistance;
     }
 }

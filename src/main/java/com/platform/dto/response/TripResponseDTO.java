@@ -16,6 +16,8 @@ public class TripResponseDTO {
     private String vehicleModel;
     private Double distanceTraveled;
     private Double invoiceTotal;
+    private Double estimatedFare;
+    private Double estimatedDistance;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
 
@@ -44,6 +46,10 @@ public class TripResponseDTO {
     public void setDistanceTraveled(Double distanceTraveled) { this.distanceTraveled = distanceTraveled; }
     public Double getInvoiceTotal() { return invoiceTotal; }
     public void setInvoiceTotal(Double invoiceTotal) { this.invoiceTotal = invoiceTotal; }
+    public Double getEstimatedFare() { return estimatedFare; }
+    public void setEstimatedFare(Double estimatedFare) { this.estimatedFare = estimatedFare; }
+    public Double getEstimatedDistance() { return estimatedDistance; }
+    public void setEstimatedDistance(Double estimatedDistance) { this.estimatedDistance = estimatedDistance; }
     public LocalDateTime getStartTime() { return startTime; }
     public void setStartTime(LocalDateTime startTime) { this.startTime = startTime; }
     public LocalDateTime getEndTime() { return endTime; }

@@ -25,7 +25,7 @@ public class TripServiceImpl implements TripService {
 
     private final TripRepository tripRepository;
     private final DriverRepository driverRepository;
-    private final CustomerRepository customerRepository; // Added missing dependency
+    private final CustomerRepository customerRepository; 
     private final ParcelRepository parcelRepository;
     private final PricingEngine pricingEngine;
     private final NotificationService notificationService;
@@ -164,9 +164,6 @@ public class TripServiceImpl implements TripService {
     @Transactional
     public Trip updateTripStatus(Long tripId, TripStatus newStatus) {
         Trip trip = getTrip(tripId);
-        if (newStatus == TripStatus.COMPLETED && !trip.isRideStartOtpVerified()) {
-            throw new IllegalStateException("Trip cannot be completed before OTP verification.");
-        }
 
         // State machine logic is strictly enforced inside the Trip entity's updateStatus()
         trip.updateStatus(newStatus);
@@ -245,8 +242,14 @@ public class TripServiceImpl implements TripService {
     // ---- Internal Logic for Final States ----
 
     private void onTripCompleted(Trip trip) {
-        // Triggers the PricingEngine to finalize fare and generate the Invoice
-        pricingEngine.generateInvoice(trip);
+        // Triggers the PricingEngine to finalize fare and generate the Invoice.
+        // Wrapped in try-catch so a billing error never prevents the trip from being
+        // saved as COMPLETED — the trip state is the source of truth.
+        try {
+            pricingEngine.generateInvoice(trip);
+        } catch (Exception e) {
+            System.err.println("[TripService] Invoice generation failed for trip " + trip.getId() + ": " + e.getMessage());
+        }
 
         // Reset driver availability
         Driver driver = trip.getDriver();
